@@ -1,8 +1,8 @@
 # IceRender
 
-This project is for learning, practicing C++/OpenGL/glsl and making some fun.
+This project is for learning, practicing C++/OpenGL/glsl and having some fun.
 
-[simple instruction](./README2.md)
+[Simple Instruction](./README2.md)
 
 ---------------------------------------------------------------------------------------------------------------------
 
