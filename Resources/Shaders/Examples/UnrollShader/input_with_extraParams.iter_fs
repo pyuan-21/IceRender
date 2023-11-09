@@ -1,0 +1,8 @@
+float Test()
+{
+    float sum = 0;
+
+    #iteration:#iterVarInit:##iterVarMax:##iterVarStep:##function:sum+=#iterVar:0#;##
+
+    return sum;
+}

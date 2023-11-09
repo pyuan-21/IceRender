@@ -1,0 +1,12 @@
+{
+  "replace_shader": {
+                        "string_params": ["float", "0", "r"],
+                        "inputs": ["Filters/Gaussian/Generator/gaussianFilter_Template.iter_fs"],
+                        "outputs": ["Filters/Gaussian/gaussianFilter_Float.iter_fs"]
+                   },
+
+  "unroll_shader": {
+                        "inputs": ["Filters/Gaussian/gaussianFilter_Float.iter_fs"],
+                        "outputs": ["Filters/Gaussian/gaussianFilter_Float.fs"]
+                   }
+}

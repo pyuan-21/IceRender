@@ -1,0 +1,18 @@
+
+void Test()
+{
+	/*function body*/
+}
+
+void TwoSameIterVariables()
+{
+	/*example for using one loop with two same iterate variables*/ 
+	#iteration: #iterVarInit:0# #iterVarMax:2# #iterVarStep:1##function:	Test(#iterVar:0#, #iterVar:0#);##
+}
+
+void main()
+{
+	TwoSameIterVariables();
+}
+
+

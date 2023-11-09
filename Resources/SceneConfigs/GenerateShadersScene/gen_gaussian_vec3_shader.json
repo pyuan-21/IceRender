@@ -1,0 +1,12 @@
+{
+  "replace_shader": {
+                        "string_params": ["vec3", "vec3(0)", "rgb"],
+                        "inputs": ["Filters/Gaussian/Generator/gaussianFilter_Template.iter_fs"],
+                        "outputs": ["Filters/Gaussian/gaussianFilter_Vec3.iter_fs"]
+                   },
+                   
+  "unroll_shader": {
+                        "inputs": ["Filters/Gaussian/gaussianFilter_Vec3.iter_fs"],
+                        "outputs": ["Filters/Gaussian/gaussianFilter_Vec3.fs"]
+                   }
+}

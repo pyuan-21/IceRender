@@ -1,0 +1,7 @@
+{
+  "replace_shader": {
+                        "string_params": ["string1", "string2"],
+                        "inputs": ["Examples/ReplaceShader/input.fs"],
+                        "outputs": ["Examples/ReplaceShader/output.fs"]
+                   }
+}

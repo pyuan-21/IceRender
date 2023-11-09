@@ -1,0 +1,13 @@
+{
+  "unroll_shader": {
+                        "extra_params_map": {
+                          "Examples/UnrollShader/input.iter_fs": [[3, 5, 1]]
+                        },
+                        "inputs": ["Examples/UnrollShader/input.iter_fs", 
+                                   "Examples/UnrollShader/input_no_iterVar.iter_fs",
+                                   "Examples/UnrollShader/input_two_same_iterVars.iter_fs"],
+                        "outputs": ["Examples/UnrollShader/output.fs", 
+                                    "Examples/UnrollShader/output_no_iterVar.fs",
+                                    "Examples/UnrollShader/output_two_same_iterVars.fs"]
+                   }
+}

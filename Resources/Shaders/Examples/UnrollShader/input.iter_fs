@@ -1,0 +1,25 @@
+
+void Test()
+{
+	/*function body*/
+}
+
+void OneLoopOneVariable()
+{
+	/*below is an example showing that no specific init/max/step. It will use extraParams from .json file*/
+	#iteration: #iterVarInit:# #iterVarMax:# #iterVarStep:# #function:	Test(#iterVar:0#);## 
+}
+
+void TwoLoopsTwoVariables()
+{
+	/*example for using two loops with two iterate variable: iterVar0 and iterVar1, and specify the init/max/step variables*/ 
+	#iteration: #iterVarInit:0# #iterVarMax:2# #iterVarStep:1# #iterVarInit:0.0# #iterVarMax:0.2# #iterVarStep:0.1# #function:	Test(#iterVar:0#, #iterVar:1#);##
+}
+
+void main()
+{
+	OneLoopOneVariable();
+	TwoLoopsTwoVariables();
+}
+
+

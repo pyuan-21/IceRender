@@ -1,0 +1,18 @@
+
+void Test()
+{
+	/*function body*/
+}
+
+void NoIterVariable()
+{
+	/*example for using one loop without any iterate variable*/ 
+	#iteration: #iterVarInit:0# #iterVarMax:2# #iterVarStep:1##function:	Test();##
+}
+
+void main()
+{
+	NoIterVariable();
+}
+
+
