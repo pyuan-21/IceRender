@@ -453,6 +453,14 @@ void ShadowMapRender::Render()
 		for (auto iter = sceneObjs.begin(); iter != sceneObjs.end(); iter++)
 		{
 			auto sceneObj = *iter;
+			// TODO: In order not to render the transparent object's shadow, I just check its name for the time being
+			// To refactor these codes later by using a boolean whether cast shadow.
+			if (sceneObj->GetName().find("_transparent") != std::string::npos)
+				continue;
+			// TODO: refactor below to avoid rendering screen quad object
+			if (sceneObj->GetName() == "screen_quad")
+				continue;
+
 			glm::mat4 modelMat = sceneObj->GetTransform()->ComputeTransformationMatrix();
 			shaderPro->Set("modelMat", modelMat);
 			GLOBAL.render->Draw(sceneObj);
@@ -713,6 +721,14 @@ void VarianceShadowMapRender::Render()
 		for (auto iter = sceneObjs.begin(); iter != sceneObjs.end(); iter++)
 		{
 			auto sceneObj = *iter;
+			// TODO: In order not to render the transparent object's shadow, I just check its name for the time being
+			// To refactor these codes later by using a boolean whether cast shadow.
+			if (sceneObj->GetName().find("_transparent") != std::string::npos)
+				continue;
+			// TODO: refactor below to avoid rendering screen quad object
+			if (sceneObj->GetName() == "screen_quad")
+				continue;
+
 			glm::mat4 modelMat = sceneObj->GetTransform()->ComputeTransformationMatrix();
 			shaderPro->Set("modelMat", modelMat); CheckGLError();
 			GLOBAL.render->Draw(sceneObj);

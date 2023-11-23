@@ -12,7 +12,7 @@ namespace IceRender
 	{
 		// _hNum: sampling amount in horizontal direction, _vNum: sampling amount in vertical direction
 		shared_ptr<Mesh> GenSphere(const size_t& _hNum, const size_t& _vNum, const float& _radius);
-		shared_ptr<Mesh> GenPlane(const float& _width, const float& _height, const glm::vec3& _center, const glm::vec3& _normal);
+		shared_ptr<Mesh> GenPlane(const float& _width, const float& _height, const glm::vec3& _center, const glm::vec3& _normal, bool isBackGround=false);
 		shared_ptr<Mesh> GenCube(const float& _length);
 
 		std::vector<glm::vec2> GenSphereUV(const size_t& _hNum, const size_t& _vNum);

@@ -59,14 +59,16 @@ shared_ptr<Mesh> MeshGenerator::GenSphere(const size_t& _hNum, const size_t& _vN
 }
 
 
-shared_ptr<Mesh> MeshGenerator::GenPlane(const float& _width, const float& _height, const glm::vec3& _center, const glm::vec3& _normal)
+shared_ptr<Mesh> MeshGenerator::GenPlane(const float& _width, const float& _height, const glm::vec3& _center, const glm::vec3& _normal, bool isBackGround)
 {
 	// just create two triangles to construct a plane
 	// first create a plane with normal pointing to positive z-axis
-	glm::vec3 tl = _center + glm::vec3(-_width * 0.5, _height * 0.5, 0); // top left
-	glm::vec3 tr = _center + glm::vec3(_width * 0.5, _height * 0.5, 0); // top right
-	glm::vec3 bl = _center + glm::vec3(-_width * 0.5, -_height * 0.5, 0); // bottom left
-	glm::vec3 br = _center + glm::vec3(_width * 0.5, -_height * 0.5, 0); // bottom right
+
+	int depth = isBackGround ? 1 : 0;
+	glm::vec3 tl = _center + glm::vec3(-_width * 0.5, _height * 0.5, depth); // top left
+	glm::vec3 tr = _center + glm::vec3(_width * 0.5, _height * 0.5, depth); // top right
+	glm::vec3 bl = _center + glm::vec3(-_width * 0.5, -_height * 0.5, depth); // bottom left
+	glm::vec3 br = _center + glm::vec3(_width * 0.5, -_height * 0.5, depth); // bottom right
 	glm::vec3 n = glm::normalize(_normal);
 	if (n != Utility::backV3 && n != Utility::frontV3) {
 		float angle = Utility::GetAngleInRadians(Utility::backV3, n);
@@ -302,8 +304,9 @@ shared_ptr<Mesh> MeshGenerator::GenMeshFromOFF(const std::string _fileName)
 
 shared_ptr<Mesh> MeshGenerator::GenMeshFromOBJ(const std::string _fileName, vector<glm::vec2>& _uv)
 {
-	// [Important] TODO: pyuan-21: this function is not finished. For now it just reads vertices, normals and uvs.
+	// [Important] TODO: pyuan-21: this function is not finished. For now it just reads vertices, normals.
 	// TODO: still need to parse the .mtl, and how to organize the case that different faces group can read different texture but they are sharing the same vertices set.
+	// change the rendering process.(For example, a car contains four wheels and a shell. There are two textures for wheels and shell.)
 	// Also, it is very slow, and it allocates a lot of memory. To optimize it later.
 	
 	// Load an OBJ file. See https://en.wikipedia.org/wiki/Wavefront_.obj_file)
@@ -532,7 +535,7 @@ shared_ptr<Mesh> MeshGenerator::GenMeshFromOBJ(const std::string _fileName, vect
 	// TODO: in fact we should keep it as it is. (E.g. if the model is built with quad, we should use glDrawElements to draw quad directly and save quad indices.)
 	// For the time being, I just use triangles.
 	
-	// Be careful, the vertices, uvs and normals stored in .obj file can be compressed(less size than the size of "positions" which is what we expect to store in Mesh)
+	// Be careful, the vertices, uv, normals stored in .obj file can be compressed(less size than the size of "positions" which is what we expect to store in Mesh)
 
 	auto updateFunc = [&positions, &normals, &_uv, &pTemp, &uvTemp, &nTemp](glm::uvec3 &point)
 	{

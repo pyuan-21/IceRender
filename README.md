@@ -18,7 +18,17 @@ This project is for learning, practicing C++/OpenGL/glsl and having some fun.
   </p>
 
 - misc:
-  <p float="left">
-    <img src="./Output/Dissolve/dissolve_effect.gif" width="200px" />
-    <img src="./Output/SonarEffect/sonar_effect.gif" width="200px" />
-  </p>
+  - dissolve effect
+    <p float="left">
+      <img src="./Output/Dissolve/dissolve_effect.gif" width="200px" />
+    </p>
+
+  - snoar_effect
+    <p>
+      <img src="./Output/SonarEffect/sonar_effect.gif" width="200px" />
+    </p>
+    
+  - simple water effect(wave animation, distortion, foam line)
+    <p>
+      <img src="./Output/SimpleWater/simple_water.gif" width="200px" />
+    </p>

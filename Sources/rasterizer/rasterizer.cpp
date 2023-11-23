@@ -31,7 +31,7 @@ void Rasterizer::Setting()
 void Rasterizer::Render()
 {
 	// TODO: maybe it is not good way to call render function here,
-	// to reconstruct here later on.
+	// to reconstruct here later when implementing SSAO/SSDO/VSM and etc.
 	string curRenderMethod = GLOBAL.sceneMgr->GetCurrentRenderMethod();
 	if (!curRenderMethod.empty())
 	{
@@ -183,14 +183,15 @@ void Rasterizer::InitGPUData(shared_ptr<SceneObject>& _sceneObj)
 		uvBufSize = materialPtr->GetUVDataSize();
 	size_t totalBufSize = pBufSize + nBufSize + uvBufSize;
 	glNamedBufferStorage(vbo, totalBufSize, NULL, GL_DYNAMIC_STORAGE_BIT); // allocate enough size buffer on GPU side. 
-
+	// I think it's on GPU side? check this [link](https://www.reddit.com/r/opengl/comments/6v9yiw/allocating_memory_directly_on_the_gpu/) 
+	// another post said it's up to the OpenGL implementation: [link](https://stackoverflow.com/questions/39844126/when-is-data-sent-to-the-gpu-with-opengl)
 	// [TODO] Questions: of course we know it is good idea to keep a copy of mesh data on CPU side, but if we only change it's matrix(like viewmatrix),
 	// such as the static scene, it seems no need to make a copy of it on CPU side. We can store it on GPU side only(which should be the memory buffer_id is pointing to) 
 	// It's on GPU side(OpenGL context). Check here, at the beginning of this article:
 	// "Buffer Objects are OpenGL Objects that store an array of unformatted memory allocated by the OpenGL context (AKA the GPU)." 
 	// - [refer](https://www.khronos.org/opengl/wiki/Buffer_Object#Mapping)
-	
 	// initialize buffer
+
 	glNamedBufferSubData(vbo, 0, pBufSize, meshPtr->GetData(Mesh::MeshDataType::POS)); // initialize posistion data
 	glNamedBufferSubData(vbo, pBufSize, nBufSize, meshPtr->GetData(Mesh::MeshDataType::NORMAL)); // initialize normal data
 
@@ -265,6 +266,7 @@ void Rasterizer::InitRenderFuncMap()
 	// below is for fun
 	renderFuncMap["RenderSonarLight"] = RasterizerRender::RenderSonarLight;
 	renderFuncMap["RenderDissolve"] = RasterizerRender::RenderDissolve;
+	renderFuncMap["RenderSimpleWater"] = RasterizerRender::RenderSimpleWater;
 }
 
 void Rasterizer::CreateGBuffers()

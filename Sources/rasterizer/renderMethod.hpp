@@ -18,7 +18,7 @@ namespace IceRender
 #pragma region Rendering techinique for fun
 		void RenderSonarLight(); // just for fun
 		void RenderDissolve(); // just for fun
-
+		void RenderSimpleWater(); // just for fun
 #pragma endregion
 	}
 

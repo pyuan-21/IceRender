@@ -446,5 +446,6 @@ glfw_config.h
 cpp.hint
 
 # not ignore this file
-!Resources/Models/OBJ/
+!Resources/Models/OBJ
+!Resources/Models/OBJ/*/*.obj
 !Resources/Models/OBJ/hexacar military/hexacar military.obj
