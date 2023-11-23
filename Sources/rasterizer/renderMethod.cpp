@@ -102,7 +102,6 @@ void RasterizerRender::RenderPhong()
 	if (needShadowRender)
 		basicShadowMapRender->InitComputeLightRatioParameters(shaderPro, texUnit);
 
-	// TODO: I need to experience then I can optimize the draw call to handle multiple same object rendering(use instance), and static scene environemnt rendering?
 	auto sceneObjs = GLOBAL.sceneMgr->GetAllSceneObject(); // not copy data, just return reference &
 	for (auto iter = sceneObjs.begin(); iter != sceneObjs.end(); iter++)
 	{
@@ -190,7 +189,7 @@ void RasterizerRender::RenderSonarLight()
 	static float waveInterval;
 	static float waveMoveOffset = 0;
 	// TODO: to delete below codes, for now they are just temporary codes
-	// TODO: to support save .gif as output to show something interesting like this "SonarLight"
+	// TODO: to support save as .gif?
 	{
 		// below codes are written for debug
 		// below scene setting is an example for setting up the maxDepth, width, waveSpeed
@@ -243,7 +242,6 @@ void RasterizerRender::RenderSonarLight()
 		}
 	}
 
-	// TODO: I need to experience then I can optimize the draw call to handle multiple same object rendering(use instance), and static scene environemnt rendering?
 	auto sceneObjs = GLOBAL.sceneMgr->GetAllSceneObject(); // not copy data, just return reference &
 	for (auto iter = sceneObjs.begin(); iter != sceneObjs.end(); iter++)
 	{
@@ -345,7 +343,6 @@ void RasterizerRender::RenderDissolve()
 	if (needShadowRender)
 		basicShadowMapRender->InitComputeLightRatioParameters(shaderPro, texUnit);
 
-	// TODO: I need to experience then I can optimize the draw call to handle multiple same object rendering(use instance), and static scene environemnt rendering?
 	auto sceneObjs = GLOBAL.sceneMgr->GetAllSceneObject(); // not copy data, just return reference &
 	for (auto iter = sceneObjs.begin(); iter != sceneObjs.end(); iter++)
 	{
@@ -398,7 +395,8 @@ void RasterizerRender::RenderDissolve()
 
 void RasterizerRender::RenderDeferred()
 {
-	// TODO: refactor the whole function to gain more perfomance.
+	// TODO: refactor the whole function to improve the perfomance.
+	// Not handle the aliasing issue when using deferred shading. To implement it in DX11
 	auto gBuffers = GLOBAL.render->GetGBuffers();
 	if (gBuffers.size() <= 0)
 	{
@@ -806,9 +804,6 @@ void RasterizerRender::RenderSimpleWater()
 		shaderPro->Set("material.shiness", material->GetShiness());
 		if (material && material->GetUVDataSize() > 0 && material->GetAlbedo() != 0)
 		{
-			// OpenGL 4.5 way to use texture:
-			// refer: https://www.khronos.org/opengl/wiki/Example_Code
-			// TODO: but not sure whether I am doing right or not. Finish reading OpenGL book later then back to here.
 			shaderPro->Set("albedoTex", static_cast<int>(texUnit));
 			glBindTextureUnit(texUnit++, material->GetAlbedo()); // this function to bind texture object to sampler2D variable with "binding=texUnit"
 			shaderPro->Set("useAlbedoTex", 1);
