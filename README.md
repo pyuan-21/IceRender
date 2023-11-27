@@ -27,7 +27,12 @@ This project is for learning, practicing C++/OpenGL/glsl and having some fun.
     <p>
       <img src="./Output/SonarEffect/sonar_effect.gif" width="200px" />
     </p>
-    
+  
+  - distortion effect
+    <p>
+      <img src="./Output/Distortion/distortion_effect.gif" width="200px" />
+    </p>
+
   - simple water effect(wave animation, distortion, foam line)
     <p>
       <img src="./Output/SimpleWater/simple_water.gif" width="200px" />
