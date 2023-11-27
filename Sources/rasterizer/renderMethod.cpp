@@ -31,7 +31,6 @@ void RasterizerRender::RenderSimple()
 		auto material = sceneObj->GetMaterial();
 		if (material && material->GetUVDataSize() > 0 && material->GetAlbedo() != 0)
 		{
-			// OpenGL 4.5 way to use texture:
 			GLuint texUnit = 0;
 			glBindTextureUnit(texUnit, material->GetAlbedo()); // this function to bind texture object to sampler2D variable with "binding=0"
 			//glActiveTexture(GL_TEXTURE0 + texUnit); // no need actually for now
@@ -118,7 +117,6 @@ void RasterizerRender::RenderPhong()
 		{
 			// OpenGL 4.5 way to use texture:
 			// refer: https://www.khronos.org/opengl/wiki/Example_Code
-			// TODO: but not sure whether I am doing right or not. Finish reading OpenGL book later then back to here.
 			shaderPro->Set("albedoTex", static_cast<int>(texUnit));
 			glBindTextureUnit(texUnit++, material->GetAlbedo()); // this function to bind texture object to sampler2D variable with "binding=texUnit"
 			shaderPro->Set("useAlbedoTex", 1);
@@ -148,7 +146,6 @@ void RasterizerRender::RenderSceenQuad()
 		//glGetTextureLevelParameteriv(texID, 0, GL_TEXTURE_WIDTH, &width);
 		//glGetTextureLevelParameteriv(texID, 0, GL_TEXTURE_HEIGHT, &height);
 		//glViewport(0, 0, width, height); // set it back to normal
-		// OpenGL 4.5 way to use texture:
 		shaderPro->Set("useAlbedoTex", 1);
 		GLuint texUnit = 0;
 		glBindTextureUnit(texUnit, texID);
@@ -256,9 +253,6 @@ void RasterizerRender::RenderSonarLight()
 		shaderPro->Set("material.shiness", material->GetShiness());
 		if (material && material->GetUVDataSize() > 0 && material->GetAlbedo() != 0)
 		{
-			// OpenGL 4.5 way to use texture:
-			// refer: https://www.khronos.org/opengl/wiki/Example_Code
-			// TODO: but not sure whether I am doing right or not. Finish reading OpenGL book later then back to here.
 			shaderPro->Set("albedoTex", static_cast<int>(texUnit));
 			glBindTextureUnit(texUnit++, material->GetAlbedo()); // this function to bind texture object to sampler2D variable with "binding=texUnit"
 			shaderPro->Set("useAlbedoTex", 1);
@@ -357,9 +351,6 @@ void RasterizerRender::RenderDissolve()
 		shaderPro->Set("material.shiness", material->GetShiness());
 		if (material && material->GetUVDataSize() > 0 && material->GetAlbedo() != 0)
 		{
-			// OpenGL 4.5 way to use texture:
-			// refer: https://www.khronos.org/opengl/wiki/Example_Code
-			// TODO: but not sure whether I am doing right or not. Finish reading OpenGL book later then back to here.
 			shaderPro->Set("albedoTex", static_cast<int>(texUnit));
 			glBindTextureUnit(texUnit++, material->GetAlbedo()); // this function to bind texture object to sampler2D variable with "binding=texUnit"
 			shaderPro->Set("useAlbedoTex", 1);
@@ -736,7 +727,7 @@ void RasterizerRender::RenderSimpleWater()
 	
 
 	glViewport(0, 0, GLOBAL.WIN_WIDTH, GLOBAL.WIN_HEIGHT); // set it back to normal
-	glBindFramebuffer(GL_FRAMEBUFFER, 0); // bind to the new framebuffer rather than the default one
+	glBindFramebuffer(GL_FRAMEBUFFER, 0); // bind to the default one
 	glClearColor(0.67f, 0.84f, 0.90f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Erase the color and z buffers.
 
@@ -901,4 +892,148 @@ void RasterizerRender::RenderSimpleWater()
 		GLOBAL.render->Draw(sceneObj);
 	}
 	glDisable(GL_BLEND);
+}
+
+void RasterizerRender::RenderPostProcess()
+{
+	auto ppBufferData = GLOBAL.render->GetPostProcessBuffers(); // ppBufferData[0]:framebuffer, ppBufferData[1]:scene color result texture, ppBufferData[2]:depth texture.
+	if (ppBufferData.size() <= 0)
+	{
+		GLOBAL.render->CreatePostProcessBuffers();
+		ppBufferData = GLOBAL.render->GetPostProcessBuffers();
+	}
+
+#pragma region Phong pass, rendering the scene color&depth to two textures.
+	glViewport(0, 0, GLOBAL.WIN_WIDTH, GLOBAL.WIN_HEIGHT); // set it back to normal
+	glBindFramebuffer(GL_FRAMEBUFFER, ppBufferData[0]);
+	glClearColor(0.67f, 0.84f, 0.90f, 1.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Erase the color and z buffers.
+
+	GLuint texUnit = 0; // each shader start with texture0
+
+	glm::mat4 viewMat = GLOBAL.camCtrller->GetActiveCamera()->GetViewMatrix();
+	glm::mat4 projectMat = GLOBAL.camCtrller->GetActiveCamera()->GetProjectionMatrix();
+	shared_ptr<ShaderProgram> shaderPro = GLOBAL.shaderMgr->TryActivateShaderProgram(GLOBAL.shaderPathPrefix + "PostProcess/phong");
+	shaderPro->Set("viewMat", viewMat);
+	shaderPro->Set("projectMat", projectMat);
+
+	bool needShadowRender = GLOBAL.shadowMgr->IsNeedShadowRender();
+	shared_ptr<BasicShadowMapRender> basicShadowMapRender;
+	if (needShadowRender)
+		basicShadowMapRender = dynamic_pointer_cast<BasicShadowMapRender>(GLOBAL.shadowMgr->GetShadowRender());
+
+	// pass light information to current shader
+	shaderPro->Set("ambientLight", GLOBAL.sceneMgr->GetAmbient());
+	auto lights = GLOBAL.sceneMgr->GetAllLight();
+	shaderPro->Set("activeLightNum", static_cast<int>(lights.size()));
+	for (size_t i = 0; i < lights.size(); i++)
+	{
+		shaderPro->Set("lights[" + std::to_string(i) + "].type", static_cast<int>(lights[i]->GetType()));
+		shaderPro->Set("lights[" + std::to_string(i) + "].color", lights[i]->GetColor());
+		shaderPro->Set("lights[" + std::to_string(i) + "].pos", lights[i]->GetTransform()->GetPosition());
+		shaderPro->Set("lights[" + std::to_string(i) + "].intensity", lights[i]->GetIntensity());
+
+		if (needShadowRender && lights[i]->IsRenderShadow())
+			shaderPro->Set("lights[" + std::to_string(i) + "].renderShadow", 1);
+		else
+			shaderPro->Set("lights[" + std::to_string(i) + "].renderShadow", 0);
+
+		if (lights[i]->GetType() == LightType::POINT)
+		{
+			shared_ptr<PointLight> pointLight = static_pointer_cast<PointLight>(lights[i]);
+			shaderPro->Set("lights[" + std::to_string(i) + "].attenuation", pointLight->GetAttenuation());
+		}
+		else if (lights[i]->GetType() == LightType::DIRECT)
+		{
+			shared_ptr<DirectLight> directLight = static_pointer_cast<DirectLight>(lights[i]);
+			shaderPro->Set("lights[" + std::to_string(i) + "].dir", -directLight->GetDirection());
+		}
+	}
+
+	if (needShadowRender)
+		basicShadowMapRender->InitComputeLightRatioParameters(shaderPro, texUnit);
+
+	auto sceneObjs = GLOBAL.sceneMgr->GetAllSceneObject(); // not copy data, just return reference &
+	for (auto iter = sceneObjs.begin(); iter != sceneObjs.end(); iter++)
+	{
+		auto sceneObj = *iter;
+		if (sceneObj->GetName() == "screen_quad")
+			continue;
+
+		glm::mat4 modelMat = sceneObj->GetTransform()->ComputeTransformationMatrix();
+		shaderPro->Set("modelMat", modelMat);
+		// pass material information to shader
+		auto material = static_pointer_cast<PhongMaterial>(sceneObj->GetMaterial());
+		shaderPro->Set("material.ka", material->GetAmbientCoef());
+		shaderPro->Set("material.kd", material->GetDiffuseCoef());
+		shaderPro->Set("material.ks", material->GetSpecularCoef());
+		shaderPro->Set("material.shiness", material->GetShiness());
+		if (material && material->GetUVDataSize() > 0 && material->GetAlbedo() != 0)
+		{
+			shaderPro->Set("albedoTex", static_cast<int>(texUnit));
+			glBindTextureUnit(texUnit++, material->GetAlbedo()); // this function to bind texture object to sampler2D variable with "binding=texUnit"
+			shaderPro->Set("useAlbedoTex", 1);
+		}
+		else
+		{
+			shaderPro->Set("useAlbedoTex", 0);
+			shaderPro->Set("material.color", material->GetColor());
+		}
+		GLOBAL.render->Draw(sceneObj);
+	}
+#pragma endregion
+	glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default framebuffer.
+}
+
+void RasterizerRender::RenderDistortion()
+{
+	// prepare the scene color/depth textures.
+	RenderPostProcess();
+
+	auto screenQuadObj = GLOBAL.sceneMgr->GetSceneObj("screen_quad");
+	if (screenQuadObj == nullptr)
+	{
+		shared_ptr<Mesh> mesh = MeshGenerator::GenPlane(2, 2, glm::vec3(0, 0, -1), Utility::backV3);
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetUV(MeshGenerator::GenPlaneUV());
+		screenQuadObj = make_shared<SceneObject>("screen_quad", mesh, material);
+		GLOBAL.sceneMgr->AddSceneObj(screenQuadObj);
+	}
+	
+	// preparation the noise texture
+	static GLuint noiseTex = 0;
+	{
+		if (!noiseTex)
+		{
+			/*load noise texture*/
+			//std::string texPath = "/Noise/noise2.jpg";
+			std::string texPath = "/Noise/noise.jpg";
+			if (Utility::Load2DTexture(texPath, true, noiseTex))
+				Print("Load Noise \"" + texPath + "\" successfully!");
+		}
+	}
+
+	{
+		glViewport(0, 0, GLOBAL.WIN_WIDTH, GLOBAL.WIN_HEIGHT); // set it back to normal
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClearColor(0.67f, 0.84f, 0.90f, 1.f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Erase the color and z buffers.
+
+		auto ppBufferData = GLOBAL.render->GetPostProcessBuffers(); // ppBufferData[0]:framebuffer, ppBufferData[1]:scene color result texture, ppBufferData[2]:depth texture.
+		shared_ptr<ShaderProgram> shaderPro = GLOBAL.shaderMgr->TryActivateShaderProgram(GLOBAL.shaderPathPrefix + "Distortion/distortion");
+
+		GLuint texUnit = 0;
+		shaderPro->Set("colorTex", static_cast<int>(texUnit));
+		glBindTextureUnit(texUnit++, ppBufferData[1]);
+
+		/*shaderPro->Set("depthTex", static_cast<int>(texUnit));
+		glBindTextureUnit(texUnit++, ppBufferData[2]);*/
+
+		shaderPro->Set("noiseTex", static_cast<int>(texUnit));
+		glBindTextureUnit(texUnit++, noiseTex);
+
+		shaderPro->Set("time", static_cast<float>(GLOBAL.timeMgr->GetCurrentTime()));
+
+		GLOBAL.render->Draw(screenQuadObj);
+	}
 }

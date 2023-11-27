@@ -1,0 +1,91 @@
+{
+  "render_method": "RenderDistortion",
+
+  "shadow_config": {
+                      "shadow_method":"ShadowMap",
+                      "use_tight_space": false,
+                      "bias": 0.001,
+                      "use_pcf": true,
+                      "pcf_kernel_size": 5
+                   },
+
+  "ambient": [0.6],
+
+  "camera": {
+    "position": [-0.007128, -1.338369, 1.064605],
+    "rotation": [-0.536264, 0.010000, 0.000000]
+  },
+
+  "lights": [
+    {
+      "name": "point_light_1",
+      "type": "point_light",
+      "position": [0, 3, 0.5],
+      "intensity": 0.6,
+      "render_shadow": true
+    },
+    {
+      "name": "direct_light_1",
+      "type": "direct_light",
+      "direction": [5, -1, 0],
+      "intensity": 0.4
+    },
+    {
+      "name": "direct_light_2",
+      "type": "direct_light",
+      "direction": [-5, -1, 0],
+      "intensity": 0.4
+    },
+    {
+      "name": "direct_light_3",
+      "type": "direct_light",
+      "direction": [0, -1, 5],
+      "intensity": 0.4
+    },
+    {
+      "name": "direct_light_3",
+      "type": "direct_light",
+      "direction": [0, -1, -5],
+      "intensity": 0.4
+    }
+  ],
+
+  "scene_objects": [
+    {
+      "name": "bunny_obj",
+      "type": "off",
+      "model": "bunny.off",
+      "material": {
+        "type": "phong_mat",
+        "ka": [1],
+        "kd": [0.8],
+        "ks": [1.0],
+        "shiness": 6,
+        "color": [0, 0.3, 0]
+      },
+      "transform": {
+        "position": [0, -2.2, 0],
+        "rotation": [0],
+        "scale": [3]
+      }
+    },
+    {
+      "name": "water_pool",
+      "type": "obj",
+      "model": "simple_water/simple_pool.obj",
+      "material": {
+        "type": "phong_mat",
+        "ka": [0.6],
+        "kd": [0.75],
+        "ks": [0.1],
+        "shiness": 6,
+        "color": [0.8, 0.8, 0.82]
+      },
+      "transform": {
+        "position": [0, -1.8, 0],
+        "rotation": [0],
+        "scale": [1]
+      }
+    }
+  ]
+}

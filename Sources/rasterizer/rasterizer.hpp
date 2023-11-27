@@ -36,6 +36,9 @@ namespace IceRender
 		// framebuffer, pos texture, normal texture, albedo texture, material texture, depth render buffer
 		vector<GLuint> gBufferData;
 
+		// framebuffer, scene color result texture, depth texture.
+		vector<GLuint> ppBufferData;
+
 	public:
 		Rasterizer();
 		~Rasterizer();
@@ -64,5 +67,10 @@ namespace IceRender
 		void CreateGBuffers();
 		void DeleteGBuffers();
 		vector<GLuint>& GetGBuffers();
+
+		// TODO: to refactor below codes.
+		void CreatePostProcessBuffers();
+		void DeletePostProcessBuffers();
+		vector<GLuint>& GetPostProcessBuffers();
 	};
 }

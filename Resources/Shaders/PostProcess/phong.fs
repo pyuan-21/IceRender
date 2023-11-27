@@ -97,7 +97,8 @@ float ComputeLightRatio(LightCamInfo lightCamInfo, sampler2D shadowMap)
 	return result;
 }
 
-out vec4 colorResponse;
+layout (location = 0) out vec4 colorTex;
+layout (location = 1) out float depthTex;
 
 void main()
 {
@@ -168,5 +169,11 @@ void main()
 
 	lRes += ambient;
 	lRes *= albedo; /*albedo determines how much lighting reflect from the surface*/
-	colorResponse = vec4(lRes, 1);
+	colorTex = vec4(lRes, 1);
+
+	// for depth
+	vec4 projectedPos = projectMat*viewMat*modelMat*vec4(fPos, 1);
+	vec3 ndcPos = (projectedPos / projectedPos.w).xyz; // map to [-1, 1] -> NDC pos
+	vec3 sampleTexCoord = (ndcPos + vec3(1)) / 2.0; // map to [0, 1] -> texCoord(screen space)
+	depthTex = sampleTexCoord.z;
 }

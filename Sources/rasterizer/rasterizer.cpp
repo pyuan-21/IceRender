@@ -60,6 +60,7 @@ void Rasterizer::Clear()
 	renderFuncMap.clear();
 
 	DeleteGBuffers();
+	DeletePostProcessBuffers();
 }
 
 size_t Rasterizer::CreateBuffer()
@@ -265,6 +266,7 @@ void Rasterizer::InitRenderFuncMap()
 	renderFuncMap["RenderSonarLight"] = RasterizerRender::RenderSonarLight;
 	renderFuncMap["RenderDissolve"] = RasterizerRender::RenderDissolve;
 	renderFuncMap["RenderSimpleWater"] = RasterizerRender::RenderSimpleWater;
+	renderFuncMap["RenderDistortion"] = RasterizerRender::RenderDistortion;
 }
 
 void Rasterizer::CreateGBuffers()
@@ -346,7 +348,75 @@ void Rasterizer::DeleteGBuffers()
 	}
 }
 
-vector<GLuint>& Rasterizer::GetGBuffers()
+vector<GLuint>& Rasterizer::GetGBuffers() { return gBufferData; }
+
+void Rasterizer::CreatePostProcessBuffers()
 {
-	return gBufferData;
+	// initialize ppBufferData
+	GLuint colorTex;
+	{
+		// create color texture
+		glCreateTextures(GL_TEXTURE_2D, 1, &colorTex); if (CheckGLError()) { Print("Error in CreatePostProcessBuffers::colorTex."); return; };
+		// [Important, Note] GL_RG16F is not enough to provide enough floating-point precision for SAT
+		glTextureStorage2D(colorTex, 1, GL_RGBA32F, GLOBAL.WIN_WIDTH, GLOBAL.WIN_HEIGHT); if (CheckGLError()) { Print("Error in CreatePostProcessBuffers::colorTex."); return; };
+		glTextureParameteri(colorTex, GL_TEXTURE_MIN_FILTER, GL_LINEAR); if (CheckGLError()) { Print("Error in CreatePostProcessBuffers::colorTex."); return; };
+		glTextureParameteri(colorTex, GL_TEXTURE_MAG_FILTER, GL_LINEAR); if (CheckGLError()) { Print("Error in CreatePostProcessBuffers::colorTex."); return; };
+		glTextureParameteri(colorTex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); if (CheckGLError()) { Print("Error in CreatePostProcessBuffers::colorTex."); return; };
+		glTextureParameteri(colorTex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); if (CheckGLError()) { Print("Error in CreatePostProcessBuffers::colorTex."); return; };
+	}
+
+	GLuint depthTex;
+	{
+		// create depth texture
+		glCreateTextures(GL_TEXTURE_2D, 1, &depthTex); if (CheckGLError()) { Print("Error in CreatePostProcessBuffers::depthTex."); return; };
+		glTextureStorage2D(depthTex, 1, GL_DEPTH_COMPONENT32, GLOBAL.WIN_WIDTH, GLOBAL.WIN_HEIGHT); if (CheckGLError()) { Print("Error in CreatePostProcessBuffers::depthTex."); return; };
+		glTextureParameteri(depthTex, GL_TEXTURE_MIN_FILTER, GL_LINEAR); if (CheckGLError()) { Print("Error in CreatePostProcessBuffers::depthTex."); return; };
+		glTextureParameteri(depthTex, GL_TEXTURE_MAG_FILTER, GL_LINEAR); if (CheckGLError()) { Print("Error in CreatePostProcessBuffers::depthTex."); return; };
+		glTextureParameteri(depthTex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER); if (CheckGLError()) { Print("Error in CreatePostProcessBuffers::depthTex."); return; };
+		glTextureParameteri(depthTex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER); if (CheckGLError()) { Print("Error in CreatePostProcessBuffers::depthTex."); return; };
+		const float borderColor[] = { 1,1,1,1 }; // max depth
+		glTextureParameterfv(depthTex, GL_TEXTURE_BORDER_COLOR, borderColor); if (CheckGLError()) { Print("Error in CreatePostProcessBuffers::depthTex."); return; };
+	}
+
+	// create framebuffer to bind above two textures.
+	// [Note] here we bind the depthTex to the GL_DEPTH_ATTACHMENT, then the depth can be written into this depthTex. We don't need extra renderbuffer for storing the depth like GBuffers
+	GLuint fbo;
+	{
+		glCreateFramebuffers(1, &fbo);
+		GLenum attachments[2] = { GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT };
+		glNamedFramebufferTexture(fbo, attachments[0], colorTex, 0);
+		glNamedFramebufferTexture(fbo, attachments[1], depthTex, 0);
+		glNamedFramebufferDrawBuffers(fbo, 1, attachments); if (CheckGLError()) { Print("Error in CreatePostProcessBuffers::fbo."); return; };
+	}
+
+	if (glCheckNamedFramebufferStatus(fbo, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) { Print("CreatePostProcessBuffers::Framebuffer, fbo not complete!"); return; }
+
+	// store framebuffer, pos texture, normal texture, albedo texture, material texture, flag texture, depth render buffer
+	ppBufferData.push_back(fbo);
+	ppBufferData.push_back(colorTex);
+	ppBufferData.push_back(depthTex);
+	Print("Rasterizer::CreatePostProcessBuffers done.");
 }
+
+void Rasterizer::DeletePostProcessBuffers()
+{
+	// framebuffer, color texture, depth texture
+	if (ppBufferData.size() > 0)
+	{
+		size_t texNum = ppBufferData.size() - 2;
+		for (size_t i = 1; i <= texNum; i++)
+		{
+			GLuint texID = ppBufferData[i];
+			if (glIsTexture(texID))
+				glDeleteTextures(1, &texID);
+		}
+
+		GLuint fbo = ppBufferData[0];
+		if (glIsFramebuffer(fbo))
+			glDeleteFramebuffers(1, &fbo);
+
+		ppBufferData.clear();
+	}
+}
+
+vector<GLuint>& Rasterizer::GetPostProcessBuffers(){ return ppBufferData; }
